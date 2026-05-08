@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { ProviderDescriptor } from '../lib/provider-list'
+import type { ProviderDescriptor } from '../../types/provider'
+import type { ProviderError } from '../../types/provider'
 import { loadProviderDescriptors } from '../lib/provider-list'
 import { OpenAILikeProvider } from '../lib/openai-like-provider'
 import { useAgent } from '../context/AgentContext'
@@ -24,17 +25,31 @@ function AgentSetupWizard({ onClose }: AgentSetupWizardProps) {
   const [descriptors, setDescriptors] = useState<ProviderDescriptor[]>([])
   const [selectedDescriptor, setSelectedDescriptor] = useState<ProviderDescriptor | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [providerErrors, setProviderErrors] = useState<ProviderError[]>([])
+  const [errorBannerExpanded, setErrorBannerExpanded] = useState(false)
 
   const overlayRef = useRef<HTMLDivElement>(null)
   const closeBtnRef = useRef<HTMLButtonElement>(null)
 
+  // Suscribe to provider errors from main process
+  useEffect(() => {
+    const cleanup = window.electronAPI?.onProvidersError?.((error: ProviderError) => {
+      setProviderErrors((prev) => [...prev, error])
+    })
+    return () => {
+      cleanup?.()
+    }
+  }, [])
+
   // Load provider descriptors on mount
   const loadDescriptors = useCallback(async () => {
     setStatus('loading')
+    setProviderErrors([])
+    setErrorBannerExpanded(false)
     try {
       const list = await loadProviderDescriptors()
       setDescriptors(list)
-      setStatus(list.length === 0 ? 'loaded' : 'loaded')
+      setStatus('loaded')
     } catch {
       setErrorMessage('No se pudieron cargar los providers.')
       setStatus('error')
@@ -109,6 +124,35 @@ function AgentSetupWizard({ onClose }: AgentSetupWizardProps) {
     [selectedDescriptor, saveConfig, setActiveConfig, setProvider, onClose]
   )
 
+  // Render error banner (DS §2.1)
+  const renderErrorBanner = () => {
+    if (providerErrors.length === 0) return null
+    return (
+      <div className="provider-error-banner" data-testid="provider-error-banner">
+        <button
+          className="provider-error-banner__toggle"
+          onClick={() => setErrorBannerExpanded((p) => !p)}
+          aria-expanded={errorBannerExpanded}
+          data-testid="provider-error-toggle"
+        >
+          <span>⚠ {providerErrors.length} provider(s) no se pudieron cargar</span>
+          <span className={`provider-error-banner__caret${errorBannerExpanded ? ' expanded' : ''}`}>
+            ▼
+          </span>
+        </button>
+        {errorBannerExpanded && (
+          <div className="provider-error-banner__detail" data-testid="provider-error-detail">
+            {providerErrors.map((pe) => (
+              <div key={pe.providerId} className="provider-error-banner__item">
+                ❌ {pe.providerId} — {pe.error}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // Determine which content to show in the content area
   const renderContent = () => {
     switch (status) {
@@ -136,7 +180,18 @@ function AgentSetupWizard({ onClose }: AgentSetupWizardProps) {
         if (descriptors.length === 0) {
           return (
             <div className="agent-setup-status" data-testid="wizard-empty">
-              <p>No hay providers disponibles.</p>
+              <div className="agent-setup-empty-icon">📁</div>
+              <p>No se encontraron providers</p>
+              <p className="agent-setup-empty-path">
+                Ruta: <code>public/providers/</code>
+              </p>
+              <button
+                className="agent-setup-retry-btn"
+                onClick={loadDescriptors}
+                data-testid="wizard-rescan-btn"
+              >
+                Escanear de nuevo
+              </button>
             </div>
           )
         }
@@ -193,9 +248,12 @@ function AgentSetupWizard({ onClose }: AgentSetupWizardProps) {
           </button>
         </div>
 
+        {/* Error banner (sticky below header) */}
+        {renderErrorBanner()}
+
         {/* Body */}
         <div className="agent-setup-body">
-          {/* Sidebar (DW5) */}
+          {/* Sidebar */}
           <div className="agent-setup-sidebar">
             <div className="agent-setup-sidebar-item agent-setup-sidebar-item--active">
               <span className="agent-setup-sidebar-icon">

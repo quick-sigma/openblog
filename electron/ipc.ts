@@ -14,6 +14,10 @@ export const IPC_CHANNELS = {
 	STORAGE_LOAD_CONVERSATIONS: 'storage:load-conversations',
 	STORAGE_SAVE_CONVERSATION: 'storage:save-conversation',
 	STORAGE_DELETE_CONVERSATION: 'storage:delete-conversation',
+
+	/** Provider channels */
+	PROVIDERS_LIST: 'providers:list',
+	PROVIDERS_ERROR: 'providers:error',
 } as const
 
 function isAllowedExternalUrl(url: string): boolean {

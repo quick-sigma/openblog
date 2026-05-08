@@ -9,3 +9,14 @@
 - Expuestos `setProvider` en AgentContext y `base_url` en storage-api para OpenAILikeProvider.
 - Tests agregados para todos los componentes nuevos (ProviderCard, SetupForm, AgentContext, etc).
 - Cero dependencias npm nuevas.
+
+## Paso 2 — Disk-based provider loading
+- Creado `electron/providers-ipc.ts` — `loadProvidersFromDisk()` lee `public/providers/<id>/description.json` síncrono, detecta logo.svg>logo.png>undefined.
+- IPC channels: `providers:list` (invoke) y `providers:error` (event push).
+- Preload expone `listProviders()` y `onProvidersError(cb)→cleanupFn`.
+- ProviderDescriptor/ProviderError/ProviderDescriptionFile en `src/types/provider.ts`.
+- Provider assets migrados de `src/assets/providers/` a `public/providers/opencode/`.
+- ProviderCard reescrito: monograma circular con iniciales cuando no hay logo o falla carga. Sin `logo_fallback_url`.
+- AgentSetupWizard: error banner colapsable con contador y expand; suscribe `onProvidersError`.
+- Empty state: icono 📁 + ruta + botón "Escanear de nuevo".
+- Tests: `electron/__tests__/providers-ipc.test.ts` (10 tests con fs temporal), `src/renderer/__tests__/provider-list.test.ts` (3 tests). ProviderCard y AgentSetupWizard tests actualizados. 17 files, 108 tests pass.

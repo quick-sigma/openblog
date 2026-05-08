@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { ProviderDescriptor } from '../lib/provider-list'
+import type { ProviderDescriptor } from '../../types/provider'
 
 type FormStatus = 'idle' | 'typing' | 'saving' | 'error'
 

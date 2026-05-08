@@ -1,5 +1,6 @@
 import { ipcRenderer, contextBridge } from 'electron'
 import { IPC_CHANNELS } from './ipc'
+import type { ProviderDescriptor, ProviderError } from '../src/types/provider'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -11,6 +12,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
 	loadConversations: (configId: string) => ipcRenderer.invoke(IPC_CHANNELS.STORAGE_LOAD_CONVERSATIONS, configId),
 	saveConversation: (configId: string, conv: unknown) => ipcRenderer.invoke(IPC_CHANNELS.STORAGE_SAVE_CONVERSATION, configId, conv),
 	deleteConversation: (configId: string, convId: string) => ipcRenderer.invoke(IPC_CHANNELS.STORAGE_DELETE_CONVERSATION, configId, convId),
+
+	// Provider disk loading
+	listProviders: () => ipcRenderer.invoke(IPC_CHANNELS.PROVIDERS_LIST) as Promise<ProviderDescriptor[]>,
+	onProvidersError: (callback: (error: ProviderError) => void) => {
+		const handler = (_event: Electron.IpcRendererEvent, error: ProviderError) => callback(error)
+		ipcRenderer.on(IPC_CHANNELS.PROVIDERS_ERROR, handler)
+		// Return cleanup function
+		return () => {
+			ipcRenderer.removeListener(IPC_CHANNELS.PROVIDERS_ERROR, handler)
+		}
+	},
 })
 contextBridge.exposeInMainWorld('ipcRenderer', {
 	on(...args: Parameters<typeof ipcRenderer.on>) {

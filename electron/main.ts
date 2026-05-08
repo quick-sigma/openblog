@@ -5,6 +5,7 @@ import path from 'node:path'
 import { parseEnvBoolean, pickString, readDotEnvFile } from './dotenv'
 import { AppLogger } from './logger'
 import { registerIpcHandlers } from './ipc'
+import { registerProviderIPCHandlers } from './providers-ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -418,5 +419,7 @@ app.whenReady().then(() => {
 	}	
 	logger.log('STARTUP', 'Phase: IPC handlers register')
 	registerIpcHandlers()
+	logger.log('STARTUP', 'Phase: provider IPC handlers register')
+	registerProviderIPCHandlers()
 	createWindow()
 })

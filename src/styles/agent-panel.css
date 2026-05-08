@@ -645,6 +645,99 @@
   background: var(--color-border-divider);
 }
 
+/* ── Provider Card: monogram (DS §2.2) ── */
+.provider-card-monogram {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-border-divider);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+
+.provider-card:hover .provider-card-monogram {
+  background: var(--color-border-subtle);
+}
+
+/* ── Provider error banner (DS §2.1) ───── */
+.provider-error-banner {
+  width: 100%;
+  background: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+  flex-shrink: 0;
+}
+
+.dark .provider-error-banner {
+  background: #2d1515;
+  border-bottom: 1px solid #4a1f1f;
+}
+
+.provider-error-banner__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 24px;
+  border: none;
+  background: transparent;
+  color: #991b1b;
+  font-size: 13px;
+  cursor: pointer;
+  gap: 8px;
+}
+
+.dark .provider-error-banner__toggle {
+  color: #fca5a5;
+}
+
+.provider-error-banner__caret {
+  font-size: 10px;
+  transition: transform 200ms;
+}
+
+.provider-error-banner__caret.expanded {
+  transform: rotate(180deg);
+}
+
+.provider-error-banner__detail {
+  padding: 0 24px 8px;
+}
+
+.provider-error-banner__item {
+  font-size: 13px;
+  color: #991b1b;
+  padding: 2px 0;
+}
+
+.dark .provider-error-banner__item {
+  color: #fca5a5;
+}
+
+/* ── Provider empty state (DS §2.4) ────── */
+.agent-setup-empty-icon {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.agent-setup-empty-path {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.agent-setup-empty-path code {
+  background: var(--color-border-divider);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
 /* ── Provider Card ──────────────────────── */
 .provider-card {
   display: flex;

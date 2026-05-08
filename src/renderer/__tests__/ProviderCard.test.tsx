@@ -1,15 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import ProviderCard from '../components/ProviderCard'
-import type { ProviderDescriptor } from '../lib/provider-list'
+import type { ProviderDescriptor } from '../../types/provider'
 
 const descriptor: ProviderDescriptor = {
   id: 'test-provider',
   name: 'Test Provider',
   description: 'A test provider description',
   base_url: 'https://test.example.com',
-  logo_url: '/providers/logo/test-provider.svg',
-  logo_fallback_url: '/providers/logo/test-provider.png',
+  logo_url: 'providers/test-provider/logo.svg',
 }
 
 describe('ProviderCard', () => {
@@ -21,12 +20,45 @@ describe('ProviderCard', () => {
     expect(screen.getByText('A test provider description')).toBeInTheDocument()
   })
 
-  it('renderiza imagen del logo', () => {
+  it('renderiza imagen del logo cuando logo_url existe', () => {
     render(
       <ProviderCard descriptor={descriptor} onSelect={vi.fn()} isConfigured={false} />
     )
     const img = screen.getByRole('img')
-    expect(img).toHaveAttribute('src', '/providers/logo/test-provider.svg')
+    expect(img).toHaveAttribute('src', 'providers/test-provider/logo.svg')
+  })
+
+  it('muestra monograma cuando logo_url es undefined', () => {
+    const noLogo = { ...descriptor, logo_url: undefined }
+    render(
+      <ProviderCard descriptor={noLogo} onSelect={vi.fn()} isConfigured={false} />
+    )
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByText('TP')).toBeInTheDocument()
+  })
+
+  it('muestra monograma cuando la imagen falla al cargar', () => {
+    render(
+      <ProviderCard descriptor={descriptor} onSelect={vi.fn()} isConfigured={false} />
+    )
+    const img = screen.getByRole('img') as HTMLImageElement
+    fireEvent.error(img)
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByText('TP')).toBeInTheDocument()
+  })
+
+  it('monograma usa dos iniciales del nombre', () => {
+    const single: ProviderDescriptor = { ...descriptor, name: 'OpenAI', logo_url: undefined }
+    render(
+      <ProviderCard descriptor={single} onSelect={vi.fn()} isConfigured={false} />
+    )
+    expect(screen.getByText('O')).toBeInTheDocument()
+
+    const multi: ProviderDescriptor = { ...descriptor, name: 'Anthropic Claude', logo_url: undefined }
+    render(
+      <ProviderCard descriptor={multi} onSelect={vi.fn()} isConfigured={false} />
+    )
+    expect(screen.getByText('AC')).toBeInTheDocument()
   })
 
   it('llama onSelect al hacer click si no está configurado', () => {
@@ -54,21 +86,10 @@ describe('ProviderCard', () => {
     expect(screen.getByText('✓')).toBeInTheDocument()
   })
 
-  it('fallback a PNG si SVG falla', () => {
-    render(
-      <ProviderCard descriptor={descriptor} onSelect={vi.fn()} isConfigured={false} />
-    )
-    const img = screen.getByRole('img') as HTMLImageElement
-    fireEvent.error(img)
-    // After error, should try fallback PNG
-    expect(img).toHaveAttribute('src', '/providers/logo/test-provider.png')
-  })
-
-  it('no muestra logo si ambos fallbacks fallan', () => {
+  it('no muestra logo si ambos están ausentes', () => {
     const noLogos: ProviderDescriptor = {
       ...descriptor,
       logo_url: undefined,
-      logo_fallback_url: undefined,
     }
     render(
       <ProviderCard descriptor={noLogos} onSelect={vi.fn()} isConfigured={false} />
