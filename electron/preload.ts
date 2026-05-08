@@ -1,6 +1,6 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import { IPC_CHANNELS } from './ipc'
-import type { ProviderDescriptor, ProviderError } from '../src/types/provider'
+import { IPC_CHANNELS } from './ipc-channels'
+import type { ProviderDescriptor, ProviderError, ProviderRequestPayload, ProviderResponse, ProviderChunkEvent } from '../src/types/provider'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -21,6 +21,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
 		// Return cleanup function
 		return () => {
 			ipcRenderer.removeListener(IPC_CHANNELS.PROVIDERS_ERROR, handler)
+		}
+	},
+
+	// Provider HTTP request delegation
+	requestProvider: (payload: ProviderRequestPayload) =>
+		ipcRenderer.invoke(IPC_CHANNELS.PROVIDER_REQUEST, payload) as Promise<ProviderResponse>,
+
+	onProviderChunk: (callback: (event: ProviderChunkEvent) => void) => {
+		const handler = (_event: Electron.IpcRendererEvent, chunk: ProviderChunkEvent) => callback(chunk)
+		ipcRenderer.on(IPC_CHANNELS.PROVIDER_CHUNK, handler)
+		return () => {
+			ipcRenderer.removeListener(IPC_CHANNELS.PROVIDER_CHUNK, handler)
+		}
+	},
+
+	onProviderRequestError: (callback: (error: string) => void) => {
+		const handler = (_event: Electron.IpcRendererEvent, error: string) => callback(error)
+		ipcRenderer.on(IPC_CHANNELS.PROVIDER_REQUEST_ERROR, handler)
+		return () => {
+			ipcRenderer.removeListener(IPC_CHANNELS.PROVIDER_REQUEST_ERROR, handler)
 		}
 	},
 })

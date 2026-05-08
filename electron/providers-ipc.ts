@@ -1,7 +1,7 @@
 import { app, ipcMain, BrowserWindow } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
-import { IPC_CHANNELS } from './ipc'
+import { IPC_CHANNELS } from './ipc-channels'
 import type { ProviderDescriptor, ProviderDescriptionFile, ProviderError } from '../src/types/provider'
 
 /** Resolve the directory where provider assets live. */
@@ -32,7 +32,7 @@ export function loadProvidersFromDisk(dirPath: string): ProviderLoadResult {
   const descriptors: ProviderDescriptor[] = []
   const errors: ProviderError[] = []
 
-  let entries: string[]
+  let entries: fs.Dirent[]
   try {
     entries = fs.readdirSync(dirPath, { withFileTypes: true })
   } catch {

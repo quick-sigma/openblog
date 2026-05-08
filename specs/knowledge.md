@@ -20,3 +20,8 @@
 - AgentSetupWizard: error banner colapsable con contador y expand; suscribe `onProvidersError`.
 - Empty state: icono 📁 + ruta + botón "Escanear de nuevo".
 - Tests: `electron/__tests__/providers-ipc.test.ts` (10 tests con fs temporal), `src/renderer/__tests__/provider-list.test.ts` (3 tests). ProviderCard y AgentSetupWizard tests actualizados. 17 files, 108 tests pass.
+
+## Paso 3 — Git flow: commit & archive (a1ddcaf)
+- Staged, committed y pusheado a `origin/main` sin conflictos.
+- Spec `disk-providers.md` movido de `specs/done/` → `specs/archived/`.
+- Registro comprimido creado en `specs/commits/a1ddcaf-disk-providers.md` (10 puntos).

@@ -1,5 +1,5 @@
 {
     "name": "Opencode Go",
     "description": "An affordable subscription tier designed to provide essential access to coding tools while remaining budget-friendly.",
-    "base_url": "https://opencode.ai/zen/go/v1",
+    "base_url": "https://opencode.ai/zen/go"
 }

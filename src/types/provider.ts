@@ -20,3 +20,26 @@ export interface ProviderError {
   providerId: string
   error: string
 }
+
+/** Payload for provider:request IPC */
+export interface ProviderRequestPayload {
+  endpoint: string
+  body?: unknown
+  base_url: string
+  apiKey: string
+  method?: 'GET' | 'POST'
+  stream?: boolean
+}
+
+/** Response from provider:request IPC (non-streaming) */
+export interface ProviderResponse {
+  status: number
+  data?: unknown
+  error?: string
+}
+
+/** Chunk event emitted during streaming */
+export interface ProviderChunkEvent {
+  chunk: Uint8Array
+  done: boolean
+}

@@ -130,9 +130,11 @@
 
 | Propiedad | Valor |
 |---|---|
-| **Descripción** | Área de mensajes del chat activo. Scroll infinito anclado al fondo. Muestra `MessageBubble` por cada mensaje. `MessageInput` fijo en la parte inferior. |
+| **Descripción** | Área de mensajes del chat activo. Scroll infinito anclado al fondo. Muestra `MessageBubble` por cada mensaje. `MessageInput` fijo en la parte inferior. Todo fetch a provider (`generate_content`) se delega a main process vía IPC — ChatView no sabe del mecanismo de transporte.
 | **Props** | Ninguna (vía `ConversationContext`) |
 | **Estados** | `empty` (sin mensajes → placeholder "Inicia una conversación…"), `populated` (mensajes presentes → renderiza burbujas), `streaming` (respuesta del modelo en curso → pulso sutil en última burbuja assistant), `error` (fallo en `generate_content` → mensaje de error + botón "Reintentar") |
+| **Estado error** | Cuando `generate_content()` lanza excepción (provider caído, timeout, 401, red), ChatView captura y muestra mensaje "Error de conexión con {provider}" + botón "Reintentar" que re-ejecuta `generate_content` con el mismo prompt. El mensaje de error anterior del assistant se descarta o se marca como fallido. |
+| **Streaming (preparado)** | ChatView suscribe `onProviderChunk` en `useEffect`. Al recibir chunks, concatena `chunk` en el `content` del último mensaje assistant usando `TextDecoder`. Cuando `done: true`, desuscribe y desactiva `isStreaming`. No implementado — solo contrato. |
 | **CSS contract** | `.chat-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }` |
 | **Messages area** | `.chat-messages { flex: 1; overflow-y: auto; padding: 8px 16px; display: flex; flex-direction: column; gap: 4px; }` |
 | **Responsive** | No aplica |
@@ -198,7 +200,7 @@
 
 | Propiedad | Valor |
 |---|---|
-| **Descripción** | Dropdown de selección de modelo. Dispara `provider.list_models()` al abrirse (lazy load). Muestra el modelo activo como trigger. |
+| **Descripción** | Dropdown de selección de modelo. Dispara `provider.list_models()` al abrirse (lazy load). Muestra el modelo activo como trigger. `list_models()` delega a main process vía IPC, transparente para el dropdown. |
 | **Props** | Ninguna (vía `AgentContext`) |
 | **Estados** | `closed` (trigger muestra nombre del modelo actual), `loading` (fetching modelos → spinner en dropdown), `open` (lista de modelos), `error` (fallo en fetch → mensaje "Error al cargar modelos" + botón "Reintentar"), `empty` (provider devolvió lista vacía → "No hay modelos disponibles") |
 | **CSS contract** | `.model-dropdown { position: relative; } .model-dropdown .trigger { padding: 6px 10px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; font-size: 13px; color: var(--color-text-muted); background: transparent; transition: border-color 200ms; display: flex; align-items: center; gap: 4px; } .model-dropdown .trigger:hover { border-color: var(--color-border-subtle); }` |
@@ -272,7 +274,7 @@
 
 | Propiedad | Valor |
 |---|---|
-| **Descripción** | Formulario de ingreso de API Key para un provider seleccionado. Se renderiza dentro del content area del wizard cuando el usuario clickea un provider no configurado. Incluye input de API Key + botón Guardar + estado de validación. |
+| **Descripción** | Formulario de ingreso de API Key para un provider seleccionado. Se renderiza dentro del content area del wizard cuando el usuario clickea un provider no configurado. Incluye input de API Key + botón Guardar + estado de validación. La validación (`provider.list_models()`) delega a main process vía IPC — SetupForm no nota el cambio. Los errores de red (provider no responde) se capturan igual que errores de API key inválida. |
 | **Props** | `descriptor: ProviderDescriptor`, `onSave: (apiKey: string) => Promise<void>`, `onCancel: () => void` |
 | **Estados** | `idle` (input vacío, botón deshabilitado), `typing` (input con texto, botón habilitado), `saving` (validando contra servidor → spinner en botón, input disabled), `error` (fallo validación → mensaje error debajo del input), `success` (no aplica, el padre cierra o muestra check) |
 | **CSS contract** | `.setup-form { padding: 16px 0; }` |
@@ -336,6 +338,7 @@ Este Design System es consumido por las siguientes especificaciones arquitectón
 | Dark Mode | `specs/archived/dark-mode.md` | `ThemeToggler`, tokens de color (todos), `--transition-theme`, `--transition-icon` |
 | Agent Panel | `specs/designed/agent-panel.md` | `AgentPanel` (feature), `ChatView`, `MessageBubble`, `MessageInput`, `ConversationList`, `ConversationItem`, `ModelDropdown`, `DropdownMenu`, `NewChatButton` |
 | Agent Config Button | `specs/designed/agent-config-button.md` | `AgentSetupWizard`, `ProviderCard`, `SetupForm`, `AgentPanel` (botón config) |
+| Node.js Provider Fetch | `specs/designed/node-provider-fetch.md` | `ChatView` (estado error real), `ModelDropdown` (nota IPC), `SetupForm` (nota IPC). Sin componentes nuevos. Sin cambios visuales. |
 
 ## 6. Historial de cambios
 
@@ -345,3 +348,4 @@ Este Design System es consumido por las siguientes especificaciones arquitectón
 | 2026-05-07 | dark-mode | Añadidos tokens dark, ThemeToggler, normas de diseño N1–N7, R6–R8, transiciones |
 | 2026-05-07 | agent-panel | AgentPanel upgrade a feature component. Añadidos: ChatView, MessageBubble, MessageInput, ConversationList, ConversationItem, ModelDropdown, DropdownMenu, NewChatButton. Nuevos tokens primary. Normas N8–N15. Reglas R4–R5 actualizadas. |
 | 2026-05-07 | agent-config-button | Añadidos: AgentSetupWizard (2.14), ProviderCard (2.15), SetupForm (2.16). Nueva norma N16 (wizard modal z-index). Nuevos tokens de animación rainbow. |
+| 2026-05-07 | node-provider-fetch | ChatView §2.6: añadido estado `error` real (antes placeholder) y suscripción preparada para streaming. ModelDropdown §2.11, SetupForm §2.16: notas de delegación IPC. Arquitectura vinculada §5 añadida. Sin cambios visuales — migración interna. |

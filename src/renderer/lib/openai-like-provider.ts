@@ -1,9 +1,10 @@
 import type { Message } from '../../shared/storage-api'
 import type { ModelProvider, Model, GenerateOptions, GenerateResponse } from './model-contract'
+import type { ProviderRequestPayload } from '../../types/provider'
 
 /**
  * Provider that implements the OpenAI-compatible REST API schema.
- * Supports any backend that exposes `/v1/chat/completions` and `/v1/models`.
+ * All HTTP calls go through the main process via IPC to avoid CORS.
  */
 export class OpenAILikeProvider implements ModelProvider {
   private baseUrl: string
@@ -16,29 +17,32 @@ export class OpenAILikeProvider implements ModelProvider {
     this.activeModel = null
   }
 
-  /** Build standard headers for OpenAI-compatible REST calls. */
-  private headers(): Record<string, string> {
+  /** Build payload for IPC provider request. */
+  private buildPayload(
+    endpoint: string,
+    options?: { method?: 'GET' | 'POST'; body?: unknown; stream?: boolean }
+  ): ProviderRequestPayload {
     return {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.apiKey}`,
+      endpoint,
+      base_url: this.baseUrl,
+      apiKey: this.apiKey,
+      method: options?.method ?? 'POST',
+      body: options?.body,
+      stream: options?.stream ?? false,
     }
   }
 
   async list_models(): Promise<Model[]> {
-    const url = `${this.baseUrl}/v1/models`
-    const resp = await fetch(url, { headers: this.headers() })
+    const payload = this.buildPayload('/v1/models', { method: 'GET' })
+    const resp = await window.electronAPI.requestProvider(payload)
 
-    if (!resp.ok) {
-      throw new Error(
-        `Failed to list models: ${resp.status} ${resp.statusText}`
-      )
+    if (resp.status >= 400) {
+      throw new Error(`Failed to list models: ${resp.status} ${resp.error ?? ''}`)
     }
 
-    const body = (await resp.json()) as {
-      data?: Array<{ id: string; object?: string }>
-    }
+    const body = resp.data as { data?: Array<{ id: string; object?: string }> } | undefined
 
-    if (!body.data || !Array.isArray(body.data)) {
+    if (!body?.data || !Array.isArray(body.data)) {
       throw new Error('Unexpected response format from /v1/models')
     }
 
@@ -52,7 +56,6 @@ export class OpenAILikeProvider implements ModelProvider {
     options?: GenerateOptions
   ): Promise<GenerateResponse> {
     const model = options?.model ?? this.activeModel ?? 'gpt-4o-mini'
-    const url = `${this.baseUrl}/v1/chat/completions`
 
     const body = {
       model,
@@ -66,23 +69,18 @@ export class OpenAILikeProvider implements ModelProvider {
       max_tokens: options?.max_tokens ?? 2048,
     }
 
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: this.headers(),
-      body: JSON.stringify(body),
-    })
+    const payload = this.buildPayload('/v1/chat/completions', { body, stream: false })
+    const resp = await window.electronAPI.requestProvider(payload)
 
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => '')
-      throw new Error(
-        `generate_content failed: ${resp.status} ${resp.statusText}${text ? ` — ${text.slice(0, 200)}` : ''}`
-      )
-    }
-
-    const result = (await resp.json()) as {
+    const result = resp.data as {
       choices?: Array<{ message?: { content?: string } }>
       usage?: { prompt_tokens: number; completion_tokens: number }
       model?: string
+    } | undefined
+
+    if (resp.status >= 400 || !result) {
+      const errorDetail = resp.error ?? (result ? JSON.stringify(result).slice(0, 200) : 'No response')
+      throw new Error(`generate_content failed: ${resp.status} — ${errorDetail}`)
     }
 
     const content = result.choices?.[0]?.message?.content ?? ''

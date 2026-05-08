@@ -39,10 +39,12 @@ function createMockAgentContext(overrides: Partial<AgentContextValue> = {}): Age
     configs: [dummyConfig],
     activeConfig: dummyConfig,
     isConfigured: true,
+    initialized: true,
     provider: dummyProvider,
     setActiveConfig: vi.fn(),
     saveConfig: vi.fn(),
     deleteConfig: vi.fn(),
+    setProvider: vi.fn(),
     ...overrides,
   }
 }
