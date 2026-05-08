@@ -1,15 +1,16 @@
 import '@testing-library/jest-dom'
 
-// Mock electronAPI for tests
-window.electronAPI = {
-  platform: 'test',
-}
-
-// Mock ResizeObserver for jsdom
-class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-window.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver
+// Inyecta design tokens en :root para que var() resuelva en jsdom
+const style = document.createElement('style')
+style.textContent = `
+  :root {
+    --color-panel-bg: #f9fafb;
+    --color-border-divider: #e5e7eb;
+    --spacing-panel: 16px;
+    --layout-min-height: 100vh;
+    --layout-ratio-content: 70%;
+    --layout-ratio-agent: 30%;
+    --layout-gap: 0;
+  }
+`
+document.head.appendChild(style)

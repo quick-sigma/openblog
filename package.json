@@ -1,34 +1,61 @@
 {
   "name": "blog-comp",
-  "version": "1.0.0",
-  "description": "React + Electron app",
-  "main": "dist-electron/main.js",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
-    "build:vite": "tsc && vite build",
-    "preview": "vite preview",
-    "lint": "tsc --noEmit",
+    "dev": "electron-vite dev",
+    "build": "tsc -b && electron-vite build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "start": "electron-vite preview",
+    "release": "npm run build && electron-builder",
+    "format": "prettier --write .",
+    "clean": "rimraf dist release node_modules/.cache",
+    "lang": "node -e \"if(process.platform==='win32'){require('child_process').spawnSync('chcp',['65001'],{stdio:'inherit',shell:true})}\""
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
-    "electron": "^33.2.0",
-    "electron-builder": "^25.1.8",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^25.6.2",
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.21",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
+    "@vitejs/plugin-react": "^4.2.1",
+    "electron": "^39.8.5",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^5.0.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
     "jsdom": "^29.1.1",
-    "typescript": "^5.6.3",
-    "vite": "^6.0.3",
-    "vite-plugin-electron": "^0.28.8",
-    "vite-plugin-electron-renderer": "^0.14.6",
+    "prettier": "^3.8.3",
+    "typescript": "^5.2.2",
+    "vite": "^6.4.2",
+    "vite-plugin-electron": "^0.29.1",
+    "vite-plugin-electron-renderer": "^0.14.5",
     "vitest": "^4.1.5"
+  },
+  "build": {
+    "directories": {
+      "output": "release"
+    }
+  },
+  "main": "dist/main/main.js",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "electron-winstaller"
+    ]
   }
 }

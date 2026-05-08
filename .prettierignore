@@ -1,0 +1,14 @@
+node_modules
+assets
+app
+dist
+build
+*.log
+log
+coverage
+.nyc_output
+*.min.js
+*.min.css
+out
+migration
+resources
