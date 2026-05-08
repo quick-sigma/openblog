@@ -1,27 +1,27 @@
 # Knowledge base
 
-## Paso 1 — Agent Config Wizard (88df944)
-- Implementado wizard de configuración de agente con selección de provider, input de API Key con type=password, y validación real contra `list_models()`.
-- Componentes puros ProviderCard y SetupForm; orquestación en AgentSetupWizard vía AgentContext.
-- CSS unificado en `agent-panel.css` con animación rainbow en botón "Configurar agente" (7 stops, 3s).
-- Sidebar del wizard fijo 220px; overlay cierra con click fuera o X sin confirmación.
-- Logo de provider: intenta SVG, fallback a PNG, doble fallback → sin imagen.
-- Expuestos `setProvider` en AgentContext y `base_url` en storage-api para OpenAILikeProvider.
-- Tests agregados para todos los componentes nuevos (ProviderCard, SetupForm, AgentContext, etc).
-- Cero dependencias npm nuevas.
+## State
+- UI: AgentSetupWizard (provider selection + API key input + validation). ProviderCard (monogram fallback). ThemeToggler (dark/light).
+- IPC: `providers:list`/`providers:error` (disk), `PROVIDER_REQUEST`/`PROVIDER_CHUNK`/`PROVIDER_REQUEST_ERROR` (HTTP fetch).
+- Storage: JSON files in `~/.config/.openblog/`.
+- Electron: Node.js 20+ `fetch()` in main process, no CORS.
+- Tests: 128 pass (18 test files).
 
-## Paso 2 — Disk-based provider loading
-- Creado `electron/providers-ipc.ts` — `loadProvidersFromDisk()` lee `public/providers/<id>/description.json` síncrono, detecta logo.svg>logo.png>undefined.
-- IPC channels: `providers:list` (invoke) y `providers:error` (event push).
-- Preload expone `listProviders()` y `onProvidersError(cb)→cleanupFn`.
-- ProviderDescriptor/ProviderError/ProviderDescriptionFile en `src/types/provider.ts`.
-- Provider assets migrados de `src/assets/providers/` a `public/providers/opencode/`.
-- ProviderCard reescrito: monograma circular con iniciales cuando no hay logo o falla carga. Sin `logo_fallback_url`.
-- AgentSetupWizard: error banner colapsable con contador y expand; suscribe `onProvidersError`.
-- Empty state: icono 📁 + ruta + botón "Escanear de nuevo".
-- Tests: `electron/__tests__/providers-ipc.test.ts` (10 tests con fs temporal), `src/renderer/__tests__/provider-list.test.ts` (3 tests). ProviderCard y AgentSetupWizard tests actualizados. 17 files, 108 tests pass.
+## History
 
-## Paso 3 — Git flow: commit & archive (a1ddcaf)
-- Staged, committed y pusheado a `origin/main` sin conflictos.
-- Spec `disk-providers.md` movido de `specs/done/` → `specs/archived/`.
-- Registro comprimido creado en `specs/commits/a1ddcaf-disk-providers.md` (10 puntos).
+### 88df944 — Agent Config Wizard
+- Wizard with provider selection, API key validation via `list_models()`, rainbow CTA button.
+- ProviderCard (logo→monogram), SetupForm (validation states).
+- CSS unificado `agent-panel.css`. Zero new deps.
+
+### a1ddcaf — Disk-based provider loading
+- `electron/providers-ipc.ts`: reads `public/providers/<id>/description.json`, detects logo.
+- IPC `providers:list`/`providers:error`. Preload: `listProviders()`, `onProvidersError(cb)→cleanup`.
+- ProviderCard monograma circular. Error banner colapsable. Empty state.
+- Tests: 10 (electron) + 3 (renderer). 17 files, 108 tests.
+
+### b711a17 — Node.js Provider Fetch
+- All provider HTTP moved to main process via `PROVIDER_REQUEST` IPC. CORS eliminated.
+- `OpenAILikeProvider` rewritten: no `fetch()`. Delegates to IPC. Streaming contract prepared.
+- `IPC_CHANNELS` extracted to own file. Preload: `requestProvider`, `onProviderChunk`, `onProviderRequestError`.
+- Tests: 7 IPC integration + 15 ModelContract. 19 files, 128 tests.
