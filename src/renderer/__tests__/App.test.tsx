@@ -1,22 +1,36 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { render } from '@testing-library/react'
+import { ThemeProvider } from '../context/ThemeContext'
 import App from '../App'
+
+beforeEach(() => {
+  localStorage.clear()
+  document.documentElement.classList.remove('dark')
+})
+
+function renderApp() {
+  return render(
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  )
+}
 
 describe('App — Layout 2 columnas 70/30', () => {
   it('renderiza el contenedor raíz #app-container', () => {
-    const { container } = render(<App />)
+    const { container } = renderApp()
     const appContainer = container.querySelector('#app-container')
     expect(appContainer).toBeInTheDocument()
   })
 
   it('renderiza #content-panel y #agent-panel', () => {
-    const { container } = render(<App />)
+    const { container } = renderApp()
     expect(container.querySelector('#content-panel')).toBeInTheDocument()
     expect(container.querySelector('#agent-panel')).toBeInTheDocument()
   })
 
   it('#app-container tiene display:flex y altura completa', () => {
-    const { container } = render(<App />)
+    const { container } = renderApp()
     const el = container.querySelector('#app-container')!
     const style = getComputedStyle(el)
     expect(style.display).toBe('flex')
@@ -24,7 +38,7 @@ describe('App — Layout 2 columnas 70/30', () => {
   })
 
   it('#content-panel usa design token para width 70%', () => {
-    const { container } = render(<App />)
+    const { container } = renderApp()
     const el = container.querySelector('#content-panel')!
     const style = getComputedStyle(el)
     // jsdom no resuelve var(), verifica que el token esté referenciado
@@ -33,7 +47,7 @@ describe('App — Layout 2 columnas 70/30', () => {
   })
 
   it('#agent-panel usa design token para width 30% con borde', () => {
-    const { container } = render(<App />)
+    const { container } = renderApp()
     const el = container.querySelector('#agent-panel')!
     const style = getComputedStyle(el)
     expect(style.width).toBe('var(--layout-ratio-agent)')
@@ -53,7 +67,7 @@ describe('App — Layout 2 columnas 70/30', () => {
   })
 
   it('los paneles están vacíos (sin contenido visible)', () => {
-    const { container } = render(<App />)
+    const { container } = renderApp()
     const content = container.querySelector('#content-panel')!
     const agent = container.querySelector('#agent-panel')!
     expect(content.textContent).toBe('')
@@ -61,8 +75,8 @@ describe('App — Layout 2 columnas 70/30', () => {
   })
 
   it('App no tiene estado interno ni lógica de negocio (R4)', () => {
-    // App es una función pura que renderiza solo layout
-    const { container } = render(<App />)
+    // App es una función pura que renderiza solo layout + ThemeToggler (1 child extra)
+    const { container } = renderApp()
     const appContainer = container.querySelector('#app-container')
     expect(appContainer!.children.length).toBe(2)
   })

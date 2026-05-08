@@ -4,8 +4,6 @@
 	font-weight: 400;
 
 	color-scheme: light dark;
-	color: rgba(255, 255, 255, 0.87);
-	background-color: #242424;
 
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
@@ -16,4 +14,7 @@
 body {
 	margin: 0;
 	min-height: 100vh;
+	background: var(--color-body-bg, #ffffff);
+	color: var(--color-text, #111827);
+	transition: var(--transition-theme, background-color 300ms ease, color 300ms ease);
 }

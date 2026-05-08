@@ -1,12 +1,28 @@
 /* ── Design Tokens ────────────────────────────── */
 :root {
+	--color-body-bg: #ffffff;
 	--color-panel-bg: #f9fafb;
+	--color-text: #111827;
+	--color-text-muted: #6b7280;
 	--color-border-divider: #e5e7eb;
+	--color-border-subtle: #d1d5db;
 	--spacing-panel: 16px;
 	--layout-min-height: 100vh;
 	--layout-ratio-content: 70%;
 	--layout-ratio-agent: 30%;
 	--layout-gap: 0;
+	--transition-theme: background-color 300ms ease, color 300ms ease;
+	--transition-icon: transform 400ms ease;
+}
+
+/* ── Dark Overrides ──────────────────────────── */
+.dark {
+	--color-body-bg: #0f0f1a;
+	--color-panel-bg: #1a1a2e;
+	--color-text: #e2e2e8;
+	--color-text-muted: #9e9eb0;
+	--color-border-divider: #2a2a3d;
+	--color-border-subtle: #35354a;
 }
 
 /* ── Layout ───────────────────────────────────── */
@@ -15,6 +31,8 @@
 	width: 100%;
 	height: var(--layout-min-height);
 	gap: var(--layout-gap);
+	background: var(--color-panel-bg);
+	transition: var(--transition-theme);
 }
 
 #content-panel {
@@ -22,6 +40,7 @@
 	overflow-y: auto;
 	padding: var(--spacing-panel);
 	background: var(--color-panel-bg);
+	transition: var(--transition-theme);
 }
 
 #agent-panel {
@@ -30,4 +49,57 @@
 	padding: var(--spacing-panel);
 	background: var(--color-panel-bg);
 	border-left: 1px solid var(--color-border-divider);
+	transition: var(--transition-theme);
+}
+
+/* ── Theme Toggler ────────────────────────────── */
+.theme-toggler {
+	position: fixed;
+	top: 12px;
+	right: 16px;
+	z-index: 9999;
+	border-radius: 8px;
+	padding: 8px 12px;
+	background: var(--color-panel-bg);
+	cursor: pointer;
+	border: 1px solid var(--color-border-subtle);
+	transition: background 200ms, transform 200ms;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.2rem;
+	line-height: 1;
+	color: var(--color-text);
+}
+
+.theme-toggler:hover {
+	background: var(--color-border-divider);
+	transform: scale(1.1);
+}
+
+.theme-toggler:focus {
+	outline: 2px solid var(--color-text-muted);
+	outline-offset: 2px;
+}
+
+.theme-toggler:active {
+	transform: scale(0.95);
+}
+
+.theme-toggler__icon {
+	display: inline-block;
+	transition: var(--transition-icon);
+}
+
+.theme-toggler__icon--spin {
+	animation: spin-theme 400ms ease;
+}
+
+@keyframes spin-theme {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
 }
