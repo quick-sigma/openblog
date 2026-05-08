@@ -1,5 +1,7 @@
 import '../styles/App.css'
+import '../styles/agent-panel.css'
 import ThemeToggler from './components/ThemeToggler'
+import AgentPanel from './components/AgentPanel'
 
 function App() {
 	return (
@@ -7,7 +9,7 @@ function App() {
 			<ThemeToggler />
 			<div id="app-container">
 				<div id="content-panel" />
-				<div id="agent-panel" />
+				<AgentPanel />
 			</div>
 		</>
 	)

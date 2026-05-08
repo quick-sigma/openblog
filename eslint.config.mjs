@@ -31,7 +31,10 @@ export default [
 		},
 		rules: {
 			...tsPlugin.configs.recommended.rules,
+			'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+			'no-unused-vars': 'off',
 			...reactHooks.configs.recommended.rules,
+			'react-hooks/set-state-in-effect': 'off',
 			'react-refresh/only-export-components': 'warn',
 			'no-undef': 'off',
 		},

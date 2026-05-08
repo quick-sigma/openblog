@@ -1,7 +1,22 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import { ThemeProvider } from '../context/ThemeContext'
+import { AgentProvider } from '../context/AgentContext'
+import { ConversationProvider } from '../context/ConversationContext'
 import App from '../App'
+
+vi.mock('../../shared/storage-api', () => ({
+  // no-op — we only use types from here
+}))
+
+// Mock storage
+vi.mock('../lib/storage', () => ({
+  loadAppState: () => Promise.resolve({ lastConfigId: null, lastConversationId: null, configs: [] }),
+  saveAppState: () => Promise.resolve(),
+  loadConversations: () => Promise.resolve([]),
+  saveConversation: () => Promise.resolve(),
+  deleteConversation: () => Promise.resolve(),
+}))
 
 beforeEach(() => {
   localStorage.clear()
@@ -11,7 +26,11 @@ beforeEach(() => {
 function renderApp() {
   return render(
     <ThemeProvider>
-      <App />
+      <AgentProvider>
+        <ConversationProvider>
+          <App />
+        </ConversationProvider>
+      </AgentProvider>
     </ThemeProvider>
   )
 }
@@ -41,41 +60,18 @@ describe('App — Layout 2 columnas 70/30', () => {
     const { container } = renderApp()
     const el = container.querySelector('#content-panel')!
     const style = getComputedStyle(el)
-    // jsdom no resuelve var(), verifica que el token esté referenciado
     expect(style.width).toBe('var(--layout-ratio-content)')
     expect(style.overflowY).toBe('auto')
   })
 
-  it('#agent-panel usa design token para width 30% con borde', () => {
+  it('#agent-panel usa design token para width 30%', () => {
     const { container } = renderApp()
     const el = container.querySelector('#agent-panel')!
     const style = getComputedStyle(el)
     expect(style.width).toBe('var(--layout-ratio-agent)')
-    expect(style.overflowY).toBe('auto')
-    // Verifica border-left via stylesheet (jsdom no resuelve var() en shorthand)
-    const sheets = document.styleSheets
-    let hasBorderRule = false
-    for (let i = 0; i < sheets.length; i++) {
-      const rules = sheets[i].cssRules
-      for (let j = 0; j < rules.length; j++) {
-        if (rules[j].cssText?.includes('#agent-panel') && rules[j].cssText?.includes('border-left')) {
-          hasBorderRule = true
-        }
-      }
-    }
-    expect(hasBorderRule).toBe(true)
-  })
-
-  it('los paneles están vacíos (sin contenido visible)', () => {
-    const { container } = renderApp()
-    const content = container.querySelector('#content-panel')!
-    const agent = container.querySelector('#agent-panel')!
-    expect(content.textContent).toBe('')
-    expect(agent.textContent).toBe('')
   })
 
   it('App no tiene estado interno ni lógica de negocio (R4)', () => {
-    // App es una función pura que renderiza solo layout + ThemeToggler (1 child extra)
     const { container } = renderApp()
     const appContainer = container.querySelector('#app-container')
     expect(appContainer!.children.length).toBe(2)

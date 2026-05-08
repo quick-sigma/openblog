@@ -44,9 +44,6 @@
 }
 
 #agent-panel {
-	width: var(--layout-ratio-agent);
-	overflow-y: auto;
-	padding: var(--spacing-panel);
 	background: var(--color-panel-bg);
 	border-left: 1px solid var(--color-border-divider);
 	transition: var(--transition-theme);
